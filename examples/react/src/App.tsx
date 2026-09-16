@@ -3,7 +3,7 @@ import {
   AnalyticsBoundary,
   AnalyticsProvider,
   usePageTracking,
-} from '@analytics-kit/react-analytics/react';
+} from 'analytics-bridge/react';
 import { analytics, analyticsConfig } from './analytics';
 import { ConsentBanner } from './ConsentBanner';
 import { HomePage } from './pages/HomePage';

@@ -1,4 +1,4 @@
-import { useAnalytics } from '@analytics-kit/react-analytics/react';
+import { useAnalytics } from 'analytics-bridge/react';
 import type { AppEvents } from '../analytics';
 
 export function HomePage() {

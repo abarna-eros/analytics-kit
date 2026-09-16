@@ -1,4 +1,4 @@
-import { useConsent } from '@analytics-kit/react-analytics/react';
+import { useConsent } from 'analytics-bridge/react';
 
 /**
  * Minimal consent UI.

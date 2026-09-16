@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAnalytics } from '@analytics-kit/react-analytics/next';
-import { getClarity } from '@analytics-kit/react-analytics/providers/clarity';
+import { useAnalytics } from 'analytics-bridge/next';
+import { getClarity } from 'analytics-bridge/providers/clarity';
 import type { AppEvents } from '../../analytics';
 
 interface ProductTrackingProps {

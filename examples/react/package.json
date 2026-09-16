@@ -1,5 +1,5 @@
 {
-  "name": "@analytics-kit/example-react",
+  "name": "analytics-bridge-example-react",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@analytics-kit/react-analytics": "file:../..",
+    "analytics-bridge": "file:../..",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0"

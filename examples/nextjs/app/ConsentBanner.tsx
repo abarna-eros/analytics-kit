@@ -1,6 +1,6 @@
 'use client';
 
-import { useConsent } from '@analytics-kit/react-analytics/next';
+import { useConsent } from 'analytics-bridge/next';
 
 export function ConsentBanner() {
   const { consent, setConsent } = useConsent();

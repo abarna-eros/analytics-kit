@@ -1,5 +1,5 @@
 /**
- * @analytics-kit/react-analytics
+ * analytics-bridge
  *
  * Main entry point: the same core engine as `/core`, plus a resolver that turns
  * `init({ providers: { ... } })` into real provider instances.

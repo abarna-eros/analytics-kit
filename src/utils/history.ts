@@ -15,7 +15,7 @@ interface HistoryRegistry {
  * the core bundle and in the React bundle share one set of listeners and patch
  * `history` exactly once.
  */
-const REGISTRY_KEY = Symbol.for('@analytics-kit/history');
+const REGISTRY_KEY = Symbol.for('analytics-bridge/history');
 
 function getRegistry(): HistoryRegistry {
   const scope = globalThis as typeof globalThis & { [REGISTRY_KEY]?: HistoryRegistry };

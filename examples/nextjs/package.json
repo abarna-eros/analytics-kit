@@ -1,5 +1,5 @@
 {
-  "name": "@analytics-kit/example-nextjs",
+  "name": "analytics-bridge-example-nextjs",
   "private": true,
   "version": "0.0.0",
   "scripts": {
@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@analytics-kit/react-analytics": "file:../..",
+    "analytics-bridge": "file:../..",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

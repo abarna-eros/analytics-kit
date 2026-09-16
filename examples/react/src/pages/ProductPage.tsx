@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAnalytics } from '@analytics-kit/react-analytics/react';
-import { getClarity } from '@analytics-kit/react-analytics/providers/clarity';
+import { useAnalytics } from 'analytics-bridge/react';
+import { getClarity } from 'analytics-bridge/providers/clarity';
 import type { AppEvents } from '../analytics';
 
 export function ProductPage() {

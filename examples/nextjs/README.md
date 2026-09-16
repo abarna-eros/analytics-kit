@@ -46,7 +46,7 @@ loading (for a CSP nonce or `beforeInteractive` priority), render `AnalyticsScri
 layout and tell the provider not to load the script:
 
 ```tsx
-import { AnalyticsScript } from '@analytics-kit/react-analytics/next';
+import { AnalyticsScript } from 'analytics-bridge/next';
 
 <AnalyticsScript googleAnalytics={{ measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID! }} />;
 ```

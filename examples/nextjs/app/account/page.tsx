@@ -1,6 +1,6 @@
 'use client';
 
-import { useAnalytics, useConsent } from '@analytics-kit/react-analytics/next';
+import { useAnalytics, useConsent } from 'analytics-bridge/next';
 
 export default function AccountPage() {
   const analytics = useAnalytics();

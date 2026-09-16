@@ -26,8 +26,8 @@ function AppRouterPageTracker(options: UseNextPageTrackingOptions): null {
  * ```tsx
  * // app/providers.tsx
  * 'use client';
- * import { createAnalytics } from '@analytics-kit/react-analytics';
- * import { NextAnalyticsProvider } from '@analytics-kit/react-analytics/next';
+ * import { createAnalytics } from 'analytics-bridge';
+ * import { NextAnalyticsProvider } from 'analytics-bridge/next';
  *
  * const analytics = createAnalytics();
  *

@@ -6,8 +6,8 @@
  * explicitly:
  *
  * ```ts
- * import { createAnalytics } from '@analytics-kit/react-analytics/core';
- * import { GoogleAnalyticsProvider } from '@analytics-kit/react-analytics/providers/google-analytics';
+ * import { createAnalytics } from 'analytics-bridge/core';
+ * import { GoogleAnalyticsProvider } from 'analytics-bridge/providers/google-analytics';
  *
  * const analytics = createAnalytics();
  * await analytics.init({

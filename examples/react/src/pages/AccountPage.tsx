@@ -1,4 +1,4 @@
-import { useAnalytics, useConsent } from '@analytics-kit/react-analytics/react';
+import { useAnalytics, useConsent } from 'analytics-bridge/react';
 import type { AppEvents } from '../analytics';
 
 export function AccountPage() {

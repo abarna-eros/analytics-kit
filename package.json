@@ -1,5 +1,5 @@
 {
-  "name": "@analytics-kit/react-analytics",
+  "name": "analytics-bridge",
   "version": "0.1.0",
   "description": "Provider-independent analytics for React and Next.js. One typed API for Google Analytics 4, Twilio Segment, Microsoft Clarity and custom providers, with consent management, batching and plugins.",
   "keywords": [
@@ -24,11 +24,11 @@
   "author": "Abarna Murugan",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-org/react-analytics.git"
+    "url": "https://github.com/abarna-eros/analytics-kit"
   },
-  "homepage": "https://github.com/your-org/react-analytics#readme",
+  "homepage": "https://github.com/abarna-eros/analytics-kit#readme",
   "bugs": {
-    "url": "https://github.com/your-org/react-analytics/issues"
+    "url": "https://github.com/abarna-eros/analytics-kit/issues"
   },
   "type": "module",
   "sideEffects": false,

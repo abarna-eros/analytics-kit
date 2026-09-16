@@ -1,4 +1,4 @@
-import { createAnalytics, type AnalyticsConfig } from '@analytics-kit/react-analytics';
+import { createAnalytics, type AnalyticsConfig } from 'analytics-bridge';
 
 /**
  * Application event map.

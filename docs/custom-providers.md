@@ -48,7 +48,7 @@ destination does not need it — the first two arguments match the familiar sign
 ## Minimal example
 
 ```ts
-import type { AnalyticsProvider } from '@analytics-kit/react-analytics';
+import type { AnalyticsProvider } from 'analytics-bridge';
 
 interface MyConfig {
   endpoint: string;
@@ -107,7 +107,7 @@ await analytics.init({
 `BaseProvider` stores config, logger and ready state for you:
 
 ```ts
-import { BaseProvider } from '@analytics-kit/react-analytics';
+import { BaseProvider } from 'analytics-bridge';
 
 export class MyProvider extends BaseProvider<MyConfig> {
   readonly name = 'my-provider';
@@ -174,7 +174,7 @@ correctly. A marketing pixel should declare `['marketing']`, not rely on the def
 ## Testing a custom provider
 
 ```ts
-import { createAnalytics } from '@analytics-kit/react-analytics';
+import { createAnalytics } from 'analytics-bridge';
 
 it('sends events to my destination', async () => {
   const beacon = vi.spyOn(navigator, 'sendBeacon').mockReturnValue(true);

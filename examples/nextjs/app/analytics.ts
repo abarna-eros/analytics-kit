@@ -1,4 +1,4 @@
-import { createAnalytics, type AnalyticsConfig } from '@analytics-kit/react-analytics';
+import { createAnalytics, type AnalyticsConfig } from 'analytics-bridge';
 
 export type AppEvents = {
   button_clicked: { buttonName: string; location: string };

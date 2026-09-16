@@ -1,4 +1,4 @@
-# @analytics-kit/react-analytics
+# analytics-bridge
 
 One provider-independent analytics API for React and Next.js applications.
 
@@ -103,13 +103,13 @@ the public API.
 ## 4. Installation
 
 ```bash
-npm install @analytics-kit/react-analytics
+npm install analytics-bridge
 ```
 
 ```bash
-pnpm add @analytics-kit/react-analytics
+pnpm add analytics-bridge
 # or
-yarn add @analytics-kit/react-analytics
+yarn add analytics-bridge
 ```
 
 Peer dependencies:
@@ -124,7 +124,7 @@ The package ships ESM and CommonJS builds, `.d.ts`/`.d.cts` declarations, and so
 ## 5. Quick start
 
 ```ts
-import { createAnalytics } from '@analytics-kit/react-analytics';
+import { createAnalytics } from 'analytics-bridge';
 
 export const analytics = createAnalytics();
 
@@ -173,14 +173,14 @@ Create the instance **once**, outside your component tree, and pass it to the pr
 
 ```tsx
 // analytics.ts
-import { createAnalytics } from '@analytics-kit/react-analytics';
+import { createAnalytics } from 'analytics-bridge';
 
 export const analytics = createAnalytics();
 ```
 
 ```tsx
 // App.tsx
-import { AnalyticsProvider } from '@analytics-kit/react-analytics/react';
+import { AnalyticsProvider } from 'analytics-bridge/react';
 import { analytics } from './analytics';
 
 export function App() {
@@ -201,7 +201,7 @@ export function App() {
 
 ```tsx
 // Any component
-import { useAnalytics } from '@analytics-kit/react-analytics/react';
+import { useAnalytics } from 'analytics-bridge/react';
 
 function LoginButton() {
   const analytics = useAnalytics();
@@ -223,7 +223,7 @@ Pass the current path so tracking follows the router rather than the History API
 
 ```tsx
 import { useLocation } from 'react-router-dom';
-import { usePageTracking } from '@analytics-kit/react-analytics/react';
+import { usePageTracking } from 'analytics-bridge/react';
 
 function PageTracker() {
   usePageTracking({ path: useLocation().pathname });
@@ -237,7 +237,7 @@ Without a `path`, `usePageTracking` listens for `pushState`, `replaceState`, `po
 ### Error boundary
 
 ```tsx
-import { AnalyticsBoundary } from '@analytics-kit/react-analytics/react';
+import { AnalyticsBoundary } from 'analytics-bridge/react';
 
 <AnalyticsBoundary component="Checkout" fallback={<CheckoutError />}>
   <Checkout />
@@ -257,8 +257,8 @@ Next.js support is an optional layer. The core package never imports Next.js.
 // app/providers.tsx
 'use client';
 
-import { createAnalytics } from '@analytics-kit/react-analytics';
-import { NextAnalyticsProvider } from '@analytics-kit/react-analytics/next';
+import { createAnalytics } from 'analytics-bridge';
+import { NextAnalyticsProvider } from 'analytics-bridge/next';
 
 const analytics = createAnalytics();
 
@@ -302,8 +302,8 @@ because `useSearchParams()` would otherwise opt the route into client-side rende
 
 ```tsx
 // pages/_app.tsx
-import { AnalyticsProvider } from '@analytics-kit/react-analytics/react';
-import { usePagesRouterPageTracking } from '@analytics-kit/react-analytics/next';
+import { AnalyticsProvider } from 'analytics-bridge/react';
+import { usePagesRouterPageTracking } from 'analytics-bridge/next';
 import { analytics } from '../analytics';
 
 function PageTracker() {
@@ -328,7 +328,7 @@ yourself and tell the providers not to inject them:
 
 ```tsx
 // app/layout.tsx
-import { AnalyticsScript } from '@analytics-kit/react-analytics/next';
+import { AnalyticsScript } from 'analytics-bridge/next';
 
 <AnalyticsScript googleAnalyticsId={process.env.NEXT_PUBLIC_GA_ID} />;
 ```
@@ -454,7 +454,7 @@ API maps onto it. Clarity-specific features are available through a typed provid
 instead of being forced into the generic interface:
 
 ```ts
-import { getClarity } from '@analytics-kit/react-analytics/providers/clarity';
+import { getClarity } from 'analytics-bridge/providers/clarity';
 
 const clarity = getClarity(analytics);
 
@@ -718,7 +718,7 @@ the `online` event. With `persist: true` the queue survives a reload. Disabled b
 Any object implementing `AnalyticsProvider` works:
 
 ```ts
-import type { AnalyticsProvider } from '@analytics-kit/react-analytics';
+import type { AnalyticsProvider } from 'analytics-bridge';
 
 class MyAnalyticsProvider implements AnalyticsProvider {
   readonly name = 'my-provider';
@@ -747,7 +747,7 @@ Optional: `group`, `reset`, `setConsent`, `flush`, `destroy`, `requiredConsent`.
 `BaseProvider` removes the boilerplate of storing config, logger and ready state:
 
 ```ts
-import { BaseProvider } from '@analytics-kit/react-analytics';
+import { BaseProvider } from 'analytics-bridge';
 
 class MyProvider extends BaseProvider<{ endpoint: string }> {
   readonly name = 'my-provider';
@@ -806,7 +806,7 @@ const samplingPlugin = {
 A ready-made logging plugin ships with the package:
 
 ```ts
-import { createLoggingPlugin } from '@analytics-kit/react-analytics';
+import { createLoggingPlugin } from 'analytics-bridge';
 analytics.use(createLoggingPlugin());
 ```
 
@@ -1010,13 +1010,13 @@ Also available: `getAnalytics()` (lazy singleton), `setAnalytics()`, `resetAnaly
 
 | Import                                                      | Contents                                                                                        |
 | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `@analytics-kit/react-analytics`                            | `createAnalytics` with built-in provider resolution, core API, types                            |
-| `@analytics-kit/react-analytics/core`                       | Provider-agnostic core                                                                          |
-| `@analytics-kit/react-analytics/react`                      | `AnalyticsProvider`, `useAnalytics`, `usePageTracking`, `useConsent`, `AnalyticsBoundary`       |
-| `@analytics-kit/react-analytics/next`                       | `NextAnalyticsProvider`, `useNextPageTracking`, `usePagesRouterPageTracking`, `AnalyticsScript` |
-| `@analytics-kit/react-analytics/providers/google-analytics` | `GoogleAnalyticsProvider`                                                                       |
-| `@analytics-kit/react-analytics/providers/segment`          | `SegmentProvider`                                                                               |
-| `@analytics-kit/react-analytics/providers/clarity`          | `ClarityProvider`, `getClarity`                                                                 |
+| `analytics-bridge`                            | `createAnalytics` with built-in provider resolution, core API, types                            |
+| `analytics-bridge/core`                       | Provider-agnostic core                                                                          |
+| `analytics-bridge/react`                      | `AnalyticsProvider`, `useAnalytics`, `usePageTracking`, `useConsent`, `AnalyticsBoundary`       |
+| `analytics-bridge/next`                       | `NextAnalyticsProvider`, `useNextPageTracking`, `usePagesRouterPageTracking`, `AnalyticsScript` |
+| `analytics-bridge/providers/google-analytics` | `GoogleAnalyticsProvider`                                                                       |
+| `analytics-bridge/providers/segment`          | `SegmentProvider`                                                                               |
+| `analytics-bridge/providers/clarity`          | `ClarityProvider`, `getClarity`                                                                 |
 
 ### Bundle size
 

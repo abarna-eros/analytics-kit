@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { NextAnalyticsProvider } from '@analytics-kit/react-analytics/next';
+import { NextAnalyticsProvider } from 'analytics-bridge/next';
 import { analytics, analyticsConfig, type AppEvents } from './analytics';
 import { ConsentBanner } from './ConsentBanner';
 

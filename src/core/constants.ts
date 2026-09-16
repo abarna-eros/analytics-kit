@@ -1,6 +1,6 @@
 /** Package-wide constants. Kept in one place so defaults are easy to audit. */
 
-export const PACKAGE_NAME = '@analytics-kit/react-analytics';
+export const PACKAGE_NAME = 'analytics-bridge';
 
 export const LOG_PREFIX = '[Analytics]';
 

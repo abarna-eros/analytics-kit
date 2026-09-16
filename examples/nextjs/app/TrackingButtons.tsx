@@ -1,6 +1,6 @@
 'use client';
 
-import { useAnalytics } from '@analytics-kit/react-analytics/next';
+import { useAnalytics } from 'analytics-bridge/next';
 import type { AppEvents } from './analytics';
 
 export function TrackingButtons() {
