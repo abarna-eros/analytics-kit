@@ -1,0 +1,14 @@
+# `files` in package.json is the source of truth for what gets published.
+# This file exists only to keep stray artefacts out if `files` is ever relaxed.
+src/
+tests/
+examples/
+docs/
+scripts/
+coverage/
+*.config.ts
+eslint.config.js
+.prettierrc.json
+.prettierignore
+tsconfig.json
+*.tgz

@@ -1,0 +1,199 @@
+{
+  "name": "@analytics-kit/react-analytics",
+  "version": "0.1.0",
+  "description": "Provider-independent analytics for React and Next.js. One typed API for Google Analytics 4, Twilio Segment, Microsoft Clarity and custom providers, with consent management, batching and plugins.",
+  "keywords": [
+    "analytics",
+    "react",
+    "nextjs",
+    "typescript",
+    "google-analytics",
+    "ga4",
+    "gtag",
+    "segment",
+    "twilio-segment",
+    "microsoft-clarity",
+    "clarity",
+    "tracking",
+    "consent",
+    "gdpr",
+    "telemetry",
+    "event-tracking"
+  ],
+  "license": "MIT",
+  "author": "Abarna Murugan",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/react-analytics.git"
+  },
+  "homepage": "https://github.com/your-org/react-analytics#readme",
+  "bugs": {
+    "url": "https://github.com/your-org/react-analytics/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "default": "./dist/index.js"
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core.d.ts",
+        "default": "./dist/core.js"
+      },
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      },
+      "default": "./dist/core.js"
+    },
+    "./react": {
+      "import": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
+      "require": {
+        "types": "./dist/react.d.cts",
+        "default": "./dist/react.cjs"
+      },
+      "default": "./dist/react.js"
+    },
+    "./next": {
+      "import": {
+        "types": "./dist/next.d.ts",
+        "default": "./dist/next.js"
+      },
+      "require": {
+        "types": "./dist/next.d.cts",
+        "default": "./dist/next.cjs"
+      },
+      "default": "./dist/next.js"
+    },
+    "./providers/google-analytics": {
+      "import": {
+        "types": "./dist/providers/google-analytics.d.ts",
+        "default": "./dist/providers/google-analytics.js"
+      },
+      "require": {
+        "types": "./dist/providers/google-analytics.d.cts",
+        "default": "./dist/providers/google-analytics.cjs"
+      },
+      "default": "./dist/providers/google-analytics.js"
+    },
+    "./providers/segment": {
+      "import": {
+        "types": "./dist/providers/segment.d.ts",
+        "default": "./dist/providers/segment.js"
+      },
+      "require": {
+        "types": "./dist/providers/segment.d.cts",
+        "default": "./dist/providers/segment.cjs"
+      },
+      "default": "./dist/providers/segment.js"
+    },
+    "./providers/clarity": {
+      "import": {
+        "types": "./dist/providers/clarity.d.ts",
+        "default": "./dist/providers/clarity.js"
+      },
+      "require": {
+        "types": "./dist/providers/clarity.d.cts",
+        "default": "./dist/providers/clarity.cjs"
+      },
+      "default": "./dist/providers/clarity.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "core": [
+        "./dist/core.d.ts"
+      ],
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "next": [
+        "./dist/next.d.ts"
+      ],
+      "providers/google-analytics": [
+        "./dist/providers/google-analytics.d.ts"
+      ],
+      "providers/segment": [
+        "./dist/providers/segment.d.ts"
+      ],
+      "providers/clarity": [
+        "./dist/providers/clarity.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "rimraf dist && tsup",
+    "clean": "rimraf dist coverage .tsbuildinfo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md}\"",
+    "size": "node scripts/check-size.mjs",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run size",
+    "prepublishOnly": "npm run clean && npm run verify"
+  },
+  "peerDependencies": {
+    "next": ">=13.4.0",
+    "react": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@testing-library/react": "^16.0.1",
+    "@types/node": "^22.20.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "jsdom": "^25.0.1",
+    "next": "^15.0.0",
+    "prettier": "^3.3.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.15.0",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
