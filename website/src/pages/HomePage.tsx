@@ -198,6 +198,8 @@ export function ChangelogPage() {
         {SITE.productName} follows semantic versioning. Pre-1.0 (<code>0.x</code>) releases may
         adjust the API in a minor bump.
       </p>
+      <h2>0.2.1</h2>
+      <p>Documentation site is the package homepage on npm.</p>
       <h2>0.2.0</h2>
       <p>Developer logging API, integration status, and debug reports.</p>
       <h2>0.1.0</h2>

@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const root = dirname(fileURLToPath(import.meta.url));
@@ -16,8 +16,21 @@ const pkg = JSON.parse(readFileSync(resolve(root, '../package.json'), 'utf8')) a
   repository: { url: string };
 };
 
+function githubPagesFallback(): Plugin {
+  return {
+    name: 'github-pages-fallback',
+    writeBundle() {
+      const index = resolve(root, 'dist/index.html');
+      if (!existsSync(index)) return;
+      copyFileSync(index, resolve(root, 'dist/404.html'));
+      writeFileSync(resolve(root, 'dist/.nojekyll'), '');
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  base: process.env.GITHUB_PAGES === '1' ? '/analytics-kit/' : '/',
+  plugins: [react(), githubPagesFallback()],
   define: {
     __AB_NAME__: JSON.stringify(pkg.name),
     __AB_VERSION__: JSON.stringify(pkg.version),

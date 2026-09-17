@@ -1,5 +1,7 @@
 # analytics-bridge
 
+**Documentation:** [https://abarna-eros.github.io/analytics-kit/](https://abarna-eros.github.io/analytics-kit/)
+
 One provider-independent analytics API for React and Next.js applications.
 
 Configure Google Analytics 4, Twilio Segment and Microsoft Clarity once, then call `track`,

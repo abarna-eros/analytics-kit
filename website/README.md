@@ -1,5 +1,7 @@
 # Analytics Bridge documentation site
 
+Live site: [https://abarna-eros.github.io/analytics-kit/](https://abarna-eros.github.io/analytics-kit/)
+
 Marketing homepage and visual docs for [`analytics-bridge`](https://www.npmjs.com/package/analytics-bridge).
 
 The package README remains the technical source of truth. This site does not load GA4, Segment or Clarity.
