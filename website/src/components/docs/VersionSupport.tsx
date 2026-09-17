@@ -2,8 +2,8 @@ import { SITE } from '../../data/site';
 
 export function VersionSupport() {
   return (
-    <div className="card" style={{ padding: 8, overflowX: 'auto' }}>
-      <table>
+    <div className="card data-card">
+      <table className="data-table">
         <thead>
           <tr>
             <th>Package</th>
@@ -19,30 +19,38 @@ export function VersionSupport() {
             <td>
               {SITE.version} (current)
             </td>
-            <td>Active</td>
+            <td>
+              <span className="status-pill status-active">Active</span>
+            </td>
           </tr>
           <tr>
             <td>React</td>
             <td>
               <code>{SITE.reactPeer}</code>
             </td>
-            <td>Supported (peer)</td>
+            <td>
+              <span className="status-pill status-ok">Supported</span>
+            </td>
           </tr>
           <tr>
             <td>Next.js</td>
             <td>
               <code>{SITE.nextPeer}</code>
             </td>
-            <td>{SITE.nextOptional ? 'Supported (optional peer)' : 'Supported'}</td>
+            <td>
+              <span className="status-pill status-ok">{SITE.nextOptional ? 'Optional peer' : 'Supported'}</span>
+            </td>
           </tr>
           <tr>
             <td>TypeScript</td>
             <td>Types exported</td>
-            <td>Supported</td>
+            <td>
+              <span className="status-pill status-ok">Supported</span>
+            </td>
           </tr>
         </tbody>
       </table>
-      <p style={{ padding: '0 12px 8px' }}>
+      <p className="data-card-note">
         Version compatibility follows the package configuration and release policy. React is required
         for <code>/react</code> and <code>/next</code>. Next.js is not required for React-only apps.
       </p>

@@ -83,3 +83,125 @@ export function CheckIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function LayersIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M12 3 3 8l9 5 9-5-9-5zM3 16l9 5 9-5M3 12l9 5 9-5" />
+    </svg>
+  );
+}
+
+export function NodesIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <circle cx="6" cy="6" r="2.2" />
+      <circle cx="18" cy="6" r="2.2" />
+      <circle cx="12" cy="18" r="2.2" />
+      <path d="M8 7.2 10.6 16M16 7.2 13.4 16M8.2 6h7.6" />
+    </svg>
+  );
+}
+
+export function ShieldIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M12 3 5 6v6c0 4.2 2.7 7.2 7 9 4.3-1.8 7-4.8 7-9V6l-7-3z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
+
+export function TypeIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M4 7V5h16v2M12 5v14M8 19h8" />
+    </svg>
+  );
+}
+
+export function ConsentIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="m8 12 2.5 2.5L16 9" />
+    </svg>
+  );
+}
+
+export function LockIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
+export function GaugeIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M5 16a7 7 0 1 1 14 0" />
+      <path d="M12 16 16 9" />
+      <circle cx="12" cy="16" r="1.4" />
+    </svg>
+  );
+}
+
+export function PlugIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M9 8V4M15 8V4M8 8h8v5a4 4 0 0 1-8 0V8zM12 17v3" />
+    </svg>
+  );
+}
+
+export function WifiOffIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M5 12a10 10 0 0 1 14 0M8 15a6 6 0 0 1 8 0M12 19h.01M4 4l16 16" />
+    </svg>
+  );
+}
+
+export function AlertIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v5M12 16.5h.01" />
+    </svg>
+  );
+}
+
+export function QueueIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M4 7h16M4 12h16M4 17h10" />
+    </svg>
+  );
+}
+
+export function BoxIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M3 8 12 4l9 4-9 4-9-4zM3 8v8l9 4 9-4V8" />
+    </svg>
+  );
+}
+
+export function ClickIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M10 4v8l3-2 2 5 2-1-2-5 4-1-9-5z" />
+    </svg>
+  );
+}
+
+export function LeafIcon(props: IconProps) {
+  return (
+    <svg {...icon(props)}>
+      <path d="M5 19c8 0 14-6 14-14-8 0-14 6-14 14z" />
+      <path d="M5 19 14 10" />
+    </svg>
+  );
+}

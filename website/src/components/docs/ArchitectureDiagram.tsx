@@ -1,50 +1,93 @@
 import { SITE } from '../../data/site';
+import { LayersIcon, LockIcon, PlugIcon, QueueIcon, ShieldIcon, WifiOffIcon } from './Icons';
+
+const CALLS = ['analytics.track()', 'analytics.page()', 'analytics.identify()'] as const;
+
+const DESTINATIONS = [
+  { name: 'Google Analytics 4', key: 'googleAnalytics', short: 'GA4' },
+  { name: 'Twilio Segment', key: 'segment', short: 'Segment' },
+  { name: 'Microsoft Clarity', key: 'clarity', short: 'Clarity' },
+] as const;
+
+const PIPELINE = ['Consent', 'Core', 'Provider', 'Destination'] as const;
+
+const CAPABILITIES = [
+  { label: 'Batching', icon: QueueIcon },
+  { label: 'Retry', icon: QueueIcon },
+  { label: 'Privacy', icon: LockIcon },
+  { label: 'Plugins', icon: PlugIcon },
+  { label: 'Offline queue', icon: WifiOffIcon },
+  { label: 'Failure isolation', icon: ShieldIcon },
+] as const;
 
 export function ArchitectureDiagram({ compact = false }: { compact?: boolean }) {
   return (
     <div
-      className="diagram"
+      className={`arch-board${compact ? ' arch-compact' : ''}`}
       role="img"
       aria-label="Your React app sends track, page, and identify calls to Analytics Bridge, which forwards them to Google Analytics 4, Twilio Segment, and Microsoft Clarity."
     >
-      <div className="card diagram-card">
-        <strong>Your React App</strong>
-        <p style={{ margin: '8px 0 0', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-          analytics.track()
-          <br />
-          analytics.page()
-          <br />
-          analytics.identify()
-        </p>
+      <div className="arch-glow" aria-hidden="true" />
+
+      <div className="arch-layer">
+        <span className="arch-kicker">Application</span>
+        <div className="card arch-node">
+          <strong>Your React / Next.js app</strong>
+          <div className="arch-calls">
+            {CALLS.map((call) => (
+              <code key={call}>{call}</code>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="diagram-line" aria-hidden="true" />
-      <div className="card diagram-card" style={{ borderColor: 'var(--accent)' }}>
-        <strong>{SITE.productName}</strong>
-        <p style={{ margin: '6px 0 0' }}>One typed API</p>
+
+      <div className="arch-connector" aria-hidden="true" />
+
+      <div className="arch-layer">
+        <span className="arch-kicker">SDK</span>
+        <div className="card arch-node arch-core">
+          <span className="feature-icon" aria-hidden="true">
+            <LayersIcon />
+          </span>
+          <strong>{SITE.productName}</strong>
+          <p>One typed API for every configured destination</p>
+        </div>
+        {compact ? null : (
+          <ol className="arch-pipeline">
+            {PIPELINE.map((step, index) => (
+              <li key={step}>
+                <span className="arch-step">{index + 1}</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
-      <div className="diagram-line" aria-hidden="true" />
-      <div className="diagram-row">
-        <div className="card diagram-card">GA4</div>
-        <div className="card diagram-card">Segment</div>
-        <div className="card diagram-card">Clarity</div>
+
+      <div className="arch-connector arch-fork" aria-hidden="true" />
+
+      <div className="arch-layer">
+        <span className="arch-kicker">Destinations</span>
+        <div className="diagram-row">
+          {DESTINATIONS.map((destination) => (
+            <article key={destination.key} className="card arch-dest">
+              <strong>{destination.short}</strong>
+              <span className="kicker">{destination.key}</span>
+              <p>{destination.name}</p>
+            </article>
+          ))}
+        </div>
       </div>
+
       {compact ? null : (
-        <>
-          <div className="pipeline" aria-label="Processing pipeline">
-            <span>Consent</span>
-            <span>Core</span>
-            <span>Provider</span>
-            <span>Destination</span>
-          </div>
-          <div className="pipeline" aria-label="Reliability and privacy">
-            <span>Batching</span>
-            <span>Retry</span>
-            <span>Privacy</span>
-            <span>Plugins</span>
-            <span>Offline queue</span>
-            <span>Failure isolation</span>
-          </div>
-        </>
+        <div className="arch-capabilities" aria-label="Reliability and privacy">
+          {CAPABILITIES.map(({ label, icon: Icon }) => (
+            <span key={label} className="arch-chip">
+              <Icon />
+              {label}
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );

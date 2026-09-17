@@ -56,14 +56,20 @@ export function HomePage() {
 
       <section className="section section-muted" id="providers">
         <div className="container">
-          <h2>One API. Three destinations.</h2>
+          <header className="section-head">
+            <p className="section-kicker">Providers</p>
+            <h2>One API. Three destinations.</h2>
+          </header>
           <ProviderCard />
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <h2>Stop scattering analytics code across your application.</h2>
+          <header className="section-head">
+            <p className="section-kicker">Why Analytics Bridge</p>
+            <h2>Stop scattering analytics code across your application.</h2>
+          </header>
           <div className="grid-2">
             <article className="card" style={{ padding: 18 }}>
               <h3>Before</h3>
@@ -89,14 +95,20 @@ clarity('event', 'purchase');`}
 
       <section className="section section-muted">
         <div className="container">
-          <h2>Features</h2>
+          <header className="section-head">
+            <p className="section-kicker">Capabilities</p>
+            <h2>Features</h2>
+          </header>
           <FeatureGrid />
         </div>
       </section>
 
       <section className="section" id="quick-start">
         <div className="container">
-          <h2>Get started in minutes</h2>
+          <header className="section-head">
+            <p className="section-kicker">Quick start</p>
+            <h2>Get started in minutes</h2>
+          </header>
           <h3>1. Install</h3>
           <InstallTabs />
           <h3>2. Create</h3>
@@ -126,28 +138,44 @@ export const analytics = createAnalytics();`}
 
       <section className="section section-muted" id="api">
         <div className="container">
-          <h2>API overview</h2>
+          <header className="section-head">
+            <p className="section-kicker">Reference</p>
+            <h2>API overview</h2>
+          </header>
           <ApiCard />
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <h2>Built for React and Next.js</h2>
+          <header className="section-head">
+            <p className="section-kicker">Frameworks</p>
+            <h2>Built for React and Next.js</h2>
+          </header>
           <FrameworkTabs />
         </div>
       </section>
 
       <section className="section section-muted">
         <div className="container">
-          <h2>Architecture</h2>
+          <header className="section-head">
+            <p className="section-kicker">Internals</p>
+            <h2>Architecture</h2>
+            <p className="lead">
+              Calls enter one SDK, then flow through consent, core, providers and destinations with
+              isolation, privacy and retry along the way.
+            </p>
+          </header>
           <ArchitectureDiagram />
         </div>
       </section>
 
       <section className="section" id="examples">
         <div className="container">
-          <h2>See it in action</h2>
+          <header className="section-head">
+            <p className="section-kicker">Live console</p>
+            <h2>See it in action</h2>
+          </header>
           <Suspense fallback={<p>Loading demo…</p>}>
             <InteractiveDemo />
           </Suspense>
@@ -156,7 +184,10 @@ export const analytics = createAnalytics();`}
 
       <section className="section section-muted">
         <div className="container">
-          <h2>Version Support</h2>
+          <header className="section-head">
+            <p className="section-kicker">Compatibility</p>
+            <h2>Version Support</h2>
+          </header>
           <VersionSupport />
         </div>
       </section>
@@ -198,6 +229,8 @@ export function ChangelogPage() {
         {SITE.productName} follows semantic versioning. Pre-1.0 (<code>0.x</code>) releases may
         adjust the API in a minor bump.
       </p>
+      <h2>0.2.2</h2>
+      <p>npm Homepage links to the documentation site.</p>
       <h2>0.2.1</h2>
       <p>Documentation site is the package homepage on npm.</p>
       <h2>0.2.0</h2>
