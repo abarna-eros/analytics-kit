@@ -1,37 +1,27 @@
-import { MonitorIcon, MoonIcon, SunIcon } from './Icons';
+import { MoonIcon, SunIcon } from './Icons';
 import { useTheme } from '../../theme/ThemeProvider';
-import type { ThemePreference } from '../../data/site';
 
-const OPTIONS: { id: ThemePreference; label: string; icon: typeof SunIcon }[] = [
-  { id: 'light', label: 'Light', icon: SunIcon },
-  { id: 'dark', label: 'Dark', icon: MoonIcon },
-  { id: 'system', label: 'System', icon: MonitorIcon },
-];
-
-export function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const { preference, setPreference } = useTheme();
+export function ThemeToggle() {
+  const { resolved, setPreference } = useTheme();
+  const isDark = resolved === 'dark';
 
   return (
-    <div role="radiogroup" aria-label="Color theme" style={{ display: 'flex', gap: 4 }}>
-      {OPTIONS.map(({ id, label, icon: Icon }) => (
-        <button
-          key={id}
-          type="button"
-          role="radio"
-          aria-checked={preference === id}
-          aria-label={label}
-          className="btn-icon"
-          title={label}
-          onClick={() => setPreference(id)}
-          style={{
-            borderColor: preference === id ? 'var(--accent)' : undefined,
-            color: preference === id ? 'var(--accent)' : undefined,
-          }}
-        >
-          <Icon />
-          {compact ? null : <span className="sr-only">{label}</span>}
-        </button>
-      ))}
-    </div>
+    <button
+      type="button"
+      className="theme-switch"
+      role="switch"
+      aria-checked={isDark}
+      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={isDark ? 'Light theme' : 'Dark theme'}
+      onClick={() => setPreference(isDark ? 'light' : 'dark')}
+    >
+      <span className="theme-switch-thumb" aria-hidden="true" />
+      <span className={`theme-switch-icon${isDark ? '' : ' is-active'}`}>
+        <SunIcon />
+      </span>
+      <span className={`theme-switch-icon${isDark ? ' is-active' : ''}`}>
+        <MoonIcon />
+      </span>
+    </button>
   );
 }

@@ -30,8 +30,6 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: website
-        env:
-          GITHUB_PAGES: '1'
       - uses: actions/upload-pages-artifact@v3
         with:
           path: website/dist

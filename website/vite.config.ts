@@ -29,7 +29,7 @@ function githubPagesFallback(): Plugin {
 }
 
 export default defineConfig({
-  base: process.env.GITHUB_PAGES === '1' ? '/analytics-kit/' : '/',
+  base: process.env.CI === 'true' ? '/analytics-kit/' : '/',
   plugins: [react(), githubPagesFallback()],
   define: {
     __AB_NAME__: JSON.stringify(pkg.name),

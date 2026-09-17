@@ -56,9 +56,7 @@ export function Header() {
           <a className="btn-icon desktop-only" href={SITE.githubUrl} target="_blank" rel="noreferrer" aria-label="GitHub repository">
             <GitHubIcon />
           </a>
-          <div className="desktop-only">
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
           <button className="btn-icon menu-btn" type="button" aria-expanded={open} aria-controls="mobile-nav" onClick={() => setOpen(true)}>
             <MenuIcon />
             <span className="sr-only">Open menu</span>
@@ -84,9 +82,6 @@ export function Header() {
               <a href={SITE.githubUrl}>GitHub</a>
               <a href={SITE.npmUrl}>npm</a>
             </nav>
-            <div style={{ marginTop: 20 }}>
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       ) : null}
