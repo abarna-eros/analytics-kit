@@ -22,7 +22,7 @@ import type {
   ProviderConfig,
   ResolvedAnalyticsConfig,
 } from './types';
-import { resolveLogLevel } from '../utils/logger';
+import { resolveLoggerOptions } from '../utils/logger';
 
 const ALL_PERFORMANCE_METRICS: readonly PerformanceMetric[] = [
   'ttfb',
@@ -42,6 +42,7 @@ const ALL_PERFORMANCE_METRICS: readonly PerformanceMetric[] = [
 export function resolveConfig(config: AnalyticsConfig = {}): ResolvedAnalyticsConfig {
   const debug = config.debug ?? false;
   const environment: Environment = config.environment ?? 'production';
+  const { options: logger } = resolveLoggerOptions(debug, config.logLevel, config.logger);
 
   const providers: Record<string, ProviderConfig> = {};
   for (const [key, value] of Object.entries(config.providers ?? {})) {
@@ -52,7 +53,8 @@ export function resolveConfig(config: AnalyticsConfig = {}): ResolvedAnalyticsCo
     providers,
     enabled: config.enabled ?? true,
     debug,
-    logLevel: resolveLogLevel(debug, config.logLevel),
+    logLevel: logger.level,
+    logger,
     environment,
     disableInDevelopment: config.disableInDevelopment ?? false,
     disableInTest: config.disableInTest ?? true,

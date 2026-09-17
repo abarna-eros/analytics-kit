@@ -71,6 +71,10 @@ describe('analytics client on the server', () => {
       analytics.reset();
       analytics.setConsent({ analytics: true });
       analytics.trackError(new Error('server error'));
+      analytics.log.debug('ssr log', { email: 'a@b.com' });
+      analytics.log.event('server_event');
+      analytics.getDebugReport();
+      analytics.getIntegrationStatus();
     }).not.toThrow();
 
     await expect(analytics.flush()).resolves.toBeUndefined();

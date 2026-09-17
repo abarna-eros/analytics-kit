@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics Bridge — One Analytics API for React &amp; Next.js</title>
+    <meta
+      name="description"
+      content="Analytics Bridge provides one provider-independent analytics API for React and Next.js applications with Google Analytics 4, Twilio Segment and Microsoft Clarity."
+    />
+    <meta property="og:title" content="Analytics Bridge — One Analytics API for React &amp; Next.js" />
+    <meta
+      property="og:description"
+      content="Analytics Bridge provides one provider-independent analytics API for React and Next.js applications with Google Analytics 4, Twilio Segment and Microsoft Clarity."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#0B1120" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        try {
+          var key = 'analytics-bridge-theme';
+          var stored = localStorage.getItem(key);
+          var pref = stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+          var theme =
+            pref === 'system'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : pref;
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.setAttribute('data-theme-pref', pref);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.setAttribute('data-theme-pref', 'system');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -52,10 +52,15 @@ export { AutoTracker } from '../tracking/AutoTracker';
 export { ErrorTracker } from '../tracking/ErrorTracker';
 export { PerformanceTracker } from '../tracking/PerformanceTracker';
 
-export { createLogger, noopLogger } from '../utils/logger';
+export { createLogger, noopLogger, isLogger, resolveLogLevel } from '../utils/logger';
 export { isBrowser, isServer, isOnline, isDoNotTrackEnabled, getPageInfo } from '../utils/browser';
 export { onHistoryChange, getCurrentUrl } from '../utils/history';
-export { sanitizeProperties, isSensitiveKey, redactForLogging } from '../utils/sanitize';
+export {
+  sanitizeProperties,
+  isSensitiveKey,
+  redactForLogging,
+  serializeForLog,
+} from '../utils/sanitize';
 export { validateEventName, isValidMeasurementId } from '../utils/validation';
 export { createStorage } from '../utils/storage';
 export { loadScript } from '../utils/script';

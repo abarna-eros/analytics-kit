@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { isSensitiveKey, redactForLogging, sanitizeProperties } from '../../src/utils/sanitize';
+import {
+  isSensitiveKey,
+  redactForLogging,
+  sanitizeProperties,
+  serializeForLog,
+} from '../../src/utils/sanitize';
 import {
   isValidClarityProjectId,
   isValidMeasurementId,
@@ -86,6 +91,31 @@ describe('sanitizeProperties', () => {
       token: '[REDACTED]',
       plan: 'pro',
     });
+    expect(
+      redactForLogging({
+        email: 'user@example.com',
+        phone: '555-0100',
+        authorization: 'Bearer secret',
+        password: 'hunter2',
+        cardNumber: '4111111111111111',
+        cvv: '123',
+        plan: 'pro',
+      })
+    ).toEqual({
+      email: '[REDACTED]',
+      phone: '[REDACTED]',
+      authorization: '[REDACTED]',
+      password: '[REDACTED]',
+      cardNumber: '[REDACTED]',
+      cvv: '[REDACTED]',
+      plan: 'pro',
+    });
+  });
+
+  it('serializes circular objects for logs without throwing', () => {
+    const circular: Record<string, unknown> = { ok: true };
+    circular.self = circular;
+    expect(serializeForLog(circular)).toEqual({ ok: true, self: '[Circular]' });
   });
 });
 
@@ -217,6 +247,48 @@ describe('logger', () => {
     expect(resolveLogLevel(true)).toBe('debug');
     expect(resolveLogLevel(false)).toBe('warn');
     expect(resolveLogLevel(false, 'error')).toBe('error');
+  });
+
+  it('swallows a throwing sink', () => {
+    const sink = {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(() => {
+        throw new Error('sink exploded');
+      }),
+    };
+    const logger = createLogger({ level: 'error', sink });
+    expect(() => logger.error('boom', { token: 'secret' })).not.toThrow();
+  });
+
+  it('redacts payloads and can hide them', () => {
+    const sink = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    createLogger({ level: 'debug', sink }).debug('evt', { email: 'a@b.com', plan: 'pro' });
+    expect(sink.debug).toHaveBeenCalledWith('[Analytics] evt', {
+      email: '[REDACTED]',
+      plan: 'pro',
+    });
+
+    const quiet = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    createLogger({ level: 'debug', showPayloads: false, sink: quiet }).debug('evt', {
+      plan: 'pro',
+    });
+    expect(quiet.debug).toHaveBeenCalledWith('[Analytics] evt');
+    expect(quiet.debug.mock.calls[0]).toHaveLength(1);
+  });
+
+  it('applies a custom prefix and timestamps', () => {
+    const sink = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    createLogger({ level: 'warn', prefix: '[AB]', timestamps: true, sink }).warn('hello');
+    expect(sink.warn.mock.calls[0]?.[0]).toMatch(/^\[AB\] \d{4}-\d{2}-\d{2}T.+ hello$/);
+  });
+
+  it('can be disabled entirely', () => {
+    const sink = { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const logger = createLogger({ level: 'debug', enabled: false, sink });
+    logger.error('nope');
+    expect(sink.error).not.toHaveBeenCalled();
   });
 
   it('exposes a no-op logger', () => {

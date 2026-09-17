@@ -155,6 +155,145 @@ export interface Logger {
   error(message: string, ...args: unknown[]): void;
 }
 
+/**
+ * Developer-logging configuration.
+ *
+ * Passed as {@link AnalyticsConfig.logger}. A bare {@link Logger} is still
+ * accepted there for backwards compatibility.
+ */
+export interface LoggerOptions {
+  /** Master switch for developer logging. @default true */
+  enabled?: boolean;
+  /** Minimum level that is written. @default derived from `debug` / `logLevel` */
+  level?: LogLevel;
+  /** Prefix printed before every message. @default '[Analytics]' */
+  prefix?: string;
+  /** Prepend an ISO-8601 timestamp. @default false */
+  timestamps?: boolean;
+  /** Include (redacted) payloads in log output. @default true */
+  showPayloads?: boolean;
+  /** Custom sink. Must implement {@link Logger}. Defaults to `console`. */
+  logger?: Logger;
+  /**
+   * Extra key fragments to redact in log output, on top of the built-in
+   * password/token/card/email/phone list.
+   */
+  redactKeys?: readonly string[];
+  /** Redact known-sensitive keys in payloads. @default true */
+  redact?: boolean;
+}
+
+/** Public developer-log namespace on {@link Analytics.log}. */
+export interface AnalyticsLog {
+  debug(message: string, metadata?: unknown): void;
+  info(message: string, metadata?: unknown): void;
+  warn(message: string, metadata?: unknown): void;
+  error(message: string, metadata?: unknown): void;
+  /** Log an application event for debugging. Does not send it to providers. */
+  event(eventName: string, payload?: unknown): void;
+  /** Log a view/screen for debugging. Does not send it to providers. */
+  view(viewName: string, payload?: unknown): void;
+  /** Log an identify call for debugging. Does not send it to providers. */
+  identify(userId?: string, traits?: unknown): void;
+}
+
+export type DebugLogCategory =
+  | 'log'
+  | 'init'
+  | 'track'
+  | 'page'
+  | 'identify'
+  | 'group'
+  | 'reset'
+  | 'consent'
+  | 'delivery'
+  | 'event'
+  | 'view';
+
+export interface DebugLogEntry {
+  timestamp: number;
+  level: Exclude<LogLevel, 'silent'>;
+  category: DebugLogCategory;
+  message: string;
+  metadata?: unknown;
+}
+
+export type IntegrationDeliveryStatus = 'success' | 'skipped' | 'unavailable' | 'failed';
+
+export type IntegrationSkipReason =
+  | 'disabled'
+  | 'consent'
+  | 'environment'
+  | 'opted_out'
+  | 'unavailable'
+  | 'not_initialized'
+  | 'filtered'
+  | 'unsupported'
+  | 'ssr'
+  | 'destroyed'
+  | 'buffered';
+
+/** Outcome of delivering one call to one integration. */
+export interface IntegrationDeliveryResult {
+  status: IntegrationDeliveryStatus;
+  operation?: string;
+  reason?: IntegrationSkipReason | string;
+  at: number;
+  error?: string;
+}
+
+/**
+ * Richer snapshot than {@link ProviderStatus}: includes SDK availability,
+ * skip reasons and the last delivery attempt.
+ */
+export interface IntegrationStatus {
+  name: string;
+  enabled: boolean;
+  initialized: boolean;
+  /** `true` when the provider initialized and can receive data. */
+  available: boolean;
+  consentGranted: boolean;
+  requiredConsent: readonly ConsentCategory[];
+  skippedReason?: IntegrationSkipReason | string;
+  lastError?: string;
+  lastDelivery?: IntegrationDeliveryResult;
+}
+
+/** Point-in-time dump of logger state, identity and every integration. */
+export interface DebugReport {
+  generatedAt: number;
+  packageName: string;
+  instanceName: string;
+  environment: Environment;
+  debug: boolean;
+  logLevel: LogLevel;
+  logger: ResolvedLoggerOptions;
+  initialized: boolean;
+  enabled: boolean;
+  optedOut: boolean;
+  ssr: boolean;
+  identity: {
+    userId: string | null;
+    anonymousId: string | null;
+    groupId: string | null;
+  };
+  consent: ConsentSnapshot;
+  integrations: readonly IntegrationStatus[];
+  unresolvedProviders: readonly { key: string; reason: string }[];
+  queueSize: number;
+  recentLogs: readonly DebugLogEntry[];
+}
+
+export interface ResolvedLoggerOptions {
+  enabled: boolean;
+  level: LogLevel;
+  prefix: string;
+  timestamps: boolean;
+  showPayloads: boolean;
+  redact: boolean;
+  redactKeys: readonly string[];
+}
+
 /* -------------------------------------------------------------------------- */
 /* Providers                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -409,8 +548,14 @@ export interface AnalyticsConfig {
   /** Explicit log level; overrides the level implied by `debug`. */
   logLevel?: LogLevel;
 
-  /** Custom logger implementation. */
-  logger?: Logger;
+  /**
+   * Developer logger.
+   *
+   * Accepts a {@link Logger} instance (backwards compatible) or a
+   * {@link LoggerOptions} object for prefix, timestamps, payload visibility
+   * and redaction.
+   */
+  logger?: Logger | LoggerOptions;
 
   /** Usually `process.env.NODE_ENV`. @default 'production' */
   environment?: Environment;
@@ -581,6 +726,8 @@ export interface Analytics<TEvents extends AnalyticsEventMap = DefaultEventMap> 
   ): TProvider | undefined;
   getProviders(): readonly AnalyticsProvider[];
   getProviderStatus(): readonly ProviderStatus[];
+  /** Per-integration availability, skip reasons and last delivery result. */
+  getIntegrationStatus(): readonly IntegrationStatus[];
   setProviderEnabled(name: string, enabled: boolean): void;
 
   /* Plugins ---------------------------------------------------------------- */
@@ -595,6 +742,15 @@ export interface Analytics<TEvents extends AnalyticsEventMap = DefaultEventMap> 
   getConfig(): Readonly<ResolvedAnalyticsConfig>;
   setDebug(debug: boolean): void;
 
+  /**
+   * Developer log namespace. Writes through the configured logger; never sends
+   * data to analytics providers.
+   */
+  readonly log: AnalyticsLog;
+
+  /** Point-in-time dump of logger, consent, identity and every integration. */
+  getDebugReport(): DebugReport;
+
   /** Tear down listeners, timers and providers. */
   destroy(): Promise<void>;
 }
@@ -605,6 +761,7 @@ export interface ResolvedAnalyticsConfig {
   enabled: boolean;
   debug: boolean;
   logLevel: LogLevel;
+  logger: ResolvedLoggerOptions;
   environment: Environment;
   disableInDevelopment: boolean;
   disableInTest: boolean;

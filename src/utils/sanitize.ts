@@ -1,6 +1,7 @@
 import {
   DEFAULT_MAX_PROPERTIES,
   DEFAULT_MAX_PROPERTY_DEPTH,
+  LOG_PII_KEY_PATTERNS,
   REDACTED_VALUE,
   SENSITIVE_KEY_PATTERNS,
 } from '../core/constants';
@@ -103,11 +104,36 @@ export function sanitizeProperties(
 }
 
 /** Redacts sensitive values for log output without touching the original object. */
-export function redactForLogging(value: unknown): unknown {
+export function redactForLogging(value: unknown, extraKeys: readonly string[] = []): unknown {
   return sanitizeValue(
     value,
     0,
-    { redactKeys: [], maxDepth: 3, maxProperties: 30, redact: true },
+    {
+      redactKeys: [...LOG_PII_KEY_PATTERNS, ...extraKeys],
+      maxDepth: 4,
+      maxProperties: 40,
+      redact: true,
+    },
     new WeakSet<object>()
   );
+}
+
+/**
+ * Circular-safe, redacted snapshot of a value for developer logs.
+ * Returns `undefined` when payloads are disabled or the value is `undefined`.
+ */
+export function serializeForLog(
+  value: unknown,
+  options: { showPayloads?: boolean; redact?: boolean; redactKeys?: readonly string[] } = {}
+): unknown {
+  if (value === undefined || options.showPayloads === false) return undefined;
+  if (options.redact === false) {
+    return sanitizeValue(
+      value,
+      0,
+      { redactKeys: [], maxDepth: 4, maxProperties: 40, redact: false },
+      new WeakSet<object>()
+    );
+  }
+  return redactForLogging(value, options.redactKeys);
 }

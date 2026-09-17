@@ -1,6 +1,6 @@
 {
   "name": "analytics-bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Provider-independent analytics for React and Next.js. One typed API for Google Analytics 4, Twilio Segment, Microsoft Clarity and custom providers, with consent management, batching and plugins.",
   "keywords": [
     "analytics",
@@ -158,6 +158,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md}\"",
+    "docs:dev": "npm --prefix website run dev",
+    "docs:build": "npm --prefix website run build",
     "size": "node scripts/check-size.mjs",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build && npm run size",
     "prepublishOnly": "npm run clean && npm run verify"

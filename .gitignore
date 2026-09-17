@@ -9,4 +9,6 @@ coverage/
 .next/
 examples/**/node_modules/
 examples/**/dist/
+website/node_modules/
+website/dist/
 *.tgz

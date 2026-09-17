@@ -42,10 +42,11 @@ That single call reaches every configured provider, translated into `gtag('event
 23. [TypeScript](#23-typescript)
 24. [Privacy](#24-privacy)
 25. [Security](#25-security)
-26. [Troubleshooting](#26-troubleshooting)
-27. [API reference](#27-api-reference)
-28. [Contributing](#28-contributing)
-29. [License](#29-license)
+26. [Developer logging](#26-developer-logging)
+27. [Troubleshooting](#27-troubleshooting)
+28. [API reference](#28-api-reference)
+29. [Contributing](#29-contributing)
+30. [License](#30-license)
 
 ---
 
@@ -86,6 +87,7 @@ vendor script is ever injected during SSR.
 | Batching & retry           | Optional queueing with flush-on-unload and bounded backoff                   |
 | Offline queue              | Optional parking of calls while offline, with replay                         |
 | Plugins                    | Observe, enrich or veto any call                                             |
+| Developer debugger         | `analytics.log.*`, integration status and a redacted debug report            |
 | Tree-shakable              | Providers load as separate chunks; subpath exports for everything            |
 | Zero runtime dependencies  | Nothing but your peer-installed React                                        |
 
@@ -903,7 +905,53 @@ your application, so you stay in control of what is exposed.
 Both inline-script helpers in the Next.js layer validate ids against `^[A-Za-z0-9_-]+$`
 before interpolation, so a malformed id cannot inject script content.
 
-## 26. Troubleshooting
+## 26. Developer logging
+
+A backward-compatible debugger for local development. It never sends data to GA4, Segment
+or Clarity, never throws, and is safe to import from Next.js Server Components.
+
+```ts
+await analytics.init({
+  debug: true,
+  logger: {
+    enabled: true,
+    level: 'debug', // silent | error | warn | info | debug
+    prefix: '[Analytics]',
+    timestamps: true,
+    showPayloads: true,
+    redactKeys: ['internalUserRef'],
+  },
+});
+
+analytics.log.debug('checkout opened', { step: 1 });
+analytics.log.info('ready');
+analytics.log.warn('retrying');
+analytics.log.error('provider timeout');
+
+analytics.log.event('checkout_started', { cartValue: 20, email: 'user@example.com' });
+analytics.log.view('Home', { path: '/' });
+analytics.log.identify('user-123', { email: 'user@example.com', plan: 'premium' });
+
+analytics.getIntegrationStatus();
+analytics.getDebugReport();
+```
+
+`debug: true` still works as before: it raises the log level to `debug`. `logger` still
+accepts a custom `{ debug, info, warn, error }` sink.
+
+**What is logged automatically** (at `debug` unless noted): initialization, `track`,
+`page`, `identify`, `group`, `reset`, consent changes, and each integration's delivery
+result (`success`, `skipped`, `unavailable`, `failed`). Initialization completes at
+`info`; SDK failures at `error`; unavailable SDKs at `warn`.
+
+Payloads are circular-safe. Known-sensitive keys — email, phone, password, token,
+authorization, card numbers, CVV, and the rest of the privacy list — are replaced with
+`[REDACTED]` in logs and in `getDebugReport()`. Event payloads sent to providers are
+unchanged: an `email` trait still reaches Segment.
+
+A throwing custom logger never breaks `track` / `page` / `identify`.
+
+## 27. Troubleshooting
 
 **Nothing is being tracked.**
 Enable `debug: true` and read the console. The most common causes are a consent decision
@@ -942,7 +990,7 @@ analytics.getProviderStatus();
 // [{ name: 'google-analytics', enabled: true, initialized: true, consentGranted: true, ... }]
 ```
 
-## 27. API reference
+## 28. API reference
 
 ### `createAnalytics<TEvents>(options?): Analytics<TEvents>`
 
@@ -974,6 +1022,10 @@ Also available: `getAnalytics()` (lazy singleton), `setAnalytics()`, `resetAnaly
 | `setEnabled(bool)` / `isEnabled()`                             | Master switch                                                      |
 | `addProvider(provider, config?)` / `removeProvider(name)`      | Runtime provider management                                        |
 | `provider<T>(name)` / `getProviders()` / `getProviderStatus()` | Provider access                                                    |
+| `getIntegrationStatus()`                                       | Availability, skip reasons and last delivery per integration       |
+| `getDebugReport()`                                             | Redacted dump of logger, consent, identity and integrations        |
+| `log.debug/info/warn/error(message, metadata?)`                | Developer logs (not sent to providers)                             |
+| `log.event/view/identify(...)`                                 | Developer event/view/identify logs (not sent to providers)         |
 | `setProviderEnabled(name, bool)`                               | Toggle one provider                                                |
 | `use(plugin)` / `removePlugin(name)`                           | Plugin management                                                  |
 | `getIdentity()` / `getAnonymousId()`                           | Identity access                                                    |
@@ -990,7 +1042,7 @@ Also available: `getAnalytics()` (lazy singleton), `setAnalytics()`, `resetAnaly
 | `enabled`              | `true`         | Master switch                                      |
 | `debug`                | `false`        | Verbose `[Analytics]` logging                      |
 | `logLevel`             | derived        | `silent` \| `error` \| `warn` \| `info` \| `debug` |
-| `logger`               | `console`      | Custom logger implementation                       |
+| `logger`               | `console`      | `Logger` sink or `LoggerOptions`                   |
 | `environment`          | `'production'` | Usually `process.env.NODE_ENV`                     |
 | `disableInDevelopment` | `false`        | Disable providers in development                   |
 | `disableInTest`        | `true`         | Disable providers in tests                         |
@@ -1008,8 +1060,8 @@ Also available: `getAnalytics()` (lazy singleton), `setAnalytics()`, `resetAnaly
 
 ### Entry points
 
-| Import                                                      | Contents                                                                                        |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Import                                        | Contents                                                                                        |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `analytics-bridge`                            | `createAnalytics` with built-in provider resolution, core API, types                            |
 | `analytics-bridge/core`                       | Provider-agnostic core                                                                          |
 | `analytics-bridge/react`                      | `AnalyticsProvider`, `useAnalytics`, `usePageTracking`, `useConsent`, `AnalyticsBoundary`       |
@@ -1024,7 +1076,8 @@ Minified + gzipped, peer dependencies external:
 
 | Entry                         | min+gzip |
 | ----------------------------- | -------- |
-| `.` (core + resolver)         | ~11.2 kB |
+| `.` (core + resolver)         | ~12.1 kB |
+| `/core`                       | ~14.8 kB |
 | `/react`                      | ~1.5 kB  |
 | `/next`                       | ~2.9 kB  |
 | `/providers/google-analytics` | ~2.3 kB  |
@@ -1035,7 +1088,7 @@ Providers are loaded through dynamic `import()`, so configuring GA4 alone never 
 the Segment or Clarity code. These figures measure the full barrel export; an app that
 imports only `createAnalytics` tree-shakes further. Run `npm run size` to reproduce.
 
-## 28. Contributing
+## 29. Contributing
 
 ```bash
 npm install
@@ -1057,6 +1110,6 @@ Please keep provider-specific code inside its provider directory, keep the core 
 vendor logic, and add tests with any new behaviour. See [`docs/`](./docs) for architecture
 notes and a guide to writing custom providers.
 
-## 29. License
+## 30. License
 
 MIT — see [LICENSE](./LICENSE).

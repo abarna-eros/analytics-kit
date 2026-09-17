@@ -25,8 +25,8 @@ const dist = resolve(root, 'dist');
  * that imports only `createAnalytics` tree-shakes most of it away.
  */
 const BUDGETS = {
-  'index.js': 12,
-  'core.js': 14,
+  'index.js': 13,
+  'core.js': 16,
   'react.js': 2,
   'next.js': 3,
   'providers/google-analytics.js': 3,

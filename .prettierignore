@@ -5,4 +5,7 @@ package-lock.json
 examples/**/node_modules
 examples/**/dist
 examples/**/.next
+website/node_modules
+website/dist
+website
 CHANGELOG.md

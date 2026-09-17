@@ -105,10 +105,15 @@ export { BaseProvider } from './providers/BaseProvider';
 export { PluginManager } from './plugins/PluginManager';
 export { createLoggingPlugin } from './plugins/logging';
 
-export { createLogger, noopLogger } from './utils/logger';
+export { createLogger, noopLogger, isLogger, resolveLogLevel } from './utils/logger';
 export { isBrowser, isServer, isOnline, isDoNotTrackEnabled, getPageInfo } from './utils/browser';
 export { onHistoryChange, getCurrentUrl } from './utils/history';
-export { sanitizeProperties, isSensitiveKey, redactForLogging } from './utils/sanitize';
+export {
+  sanitizeProperties,
+  isSensitiveKey,
+  redactForLogging,
+  serializeForLog,
+} from './utils/sanitize';
 export { validateEventName, isValidMeasurementId } from './utils/validation';
 export { createStorage } from './utils/storage';
 export { loadScript } from './utils/script';
@@ -119,6 +124,7 @@ export {
   AUTO_EVENTS,
   DEFAULT_REQUIRED_CONSENT,
   SENSITIVE_KEY_PATTERNS,
+  LOG_PII_KEY_PATTERNS,
 } from './core/constants';
 
 export type {
@@ -154,6 +160,16 @@ export type {
   GroupTraits,
   LogLevel,
   Logger,
+  LoggerOptions,
+  AnalyticsLog,
+  DebugLogCategory,
+  DebugLogEntry,
+  DebugReport,
+  IntegrationDeliveryResult,
+  IntegrationDeliveryStatus,
+  IntegrationSkipReason,
+  IntegrationStatus,
+  ResolvedLoggerOptions,
   OfflineConfig,
   PageProperties,
   PerformanceMetric,

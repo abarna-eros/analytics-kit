@@ -4,7 +4,7 @@ import {
   resolveConfig,
   resolveDefaultProperties,
 } from './config';
-import { ANONYMOUS_ID_KEY, DEFAULT_REQUIRED_CONSENT, OPT_OUT_KEY } from './constants';
+import { ANONYMOUS_ID_KEY, DEFAULT_REQUIRED_CONSENT, OPT_OUT_KEY, PACKAGE_NAME } from './constants';
 import { ConsentManager } from './consent';
 import { ProviderError, toError } from './errors';
 import { DispatchQueue, type OperationType, type QueuedCall } from './queue';
@@ -21,11 +21,15 @@ import type {
   ConsentSnapshot,
   ConsentState,
   DefaultEventMap,
+  DebugReport,
   DispatchContext,
   DispatchOptions,
   ErrorContext,
   EventName,
   GroupTraits,
+  IntegrationDeliveryResult,
+  IntegrationSkipReason,
+  IntegrationStatus,
   Logger,
   PageProperties,
   ProviderConfig,
@@ -39,10 +43,11 @@ import type { Plugin, PluginPayload } from '../plugins/types';
 import { AutoTracker } from '../tracking/AutoTracker';
 import { ErrorTracker } from '../tracking/ErrorTracker';
 import { PerformanceTracker } from '../tracking/PerformanceTracker';
-import { getPageInfo, isBrowser, isDoNotTrackEnabled } from '../utils/browser';
+import { DebugLogger } from '../debug/DebugLogger';
+import { getPageInfo, isBrowser, isDoNotTrackEnabled, isServer } from '../utils/browser';
 import { generateId } from '../utils/id';
-import { createLogger } from '../utils/logger';
-import { redactForLogging, sanitizeProperties } from '../utils/sanitize';
+import { resolveLoggerOptions } from '../utils/logger';
+import { sanitizeProperties } from '../utils/sanitize';
 import { withRetry } from '../utils/retry';
 import { createStorage, type KeyValueStorage } from '../utils/storage';
 import { validateEventName, validateGroupId, validateUserId } from '../utils/validation';
@@ -55,6 +60,8 @@ interface RegisteredProvider {
   /** Set when initialisation threw, so we stop retrying on every consent change. */
   failed: boolean;
   initializing?: Promise<void>;
+  lastError?: string;
+  lastDelivery?: IntegrationDeliveryResult;
 }
 
 interface PendingCall {
@@ -78,12 +85,15 @@ export class AnalyticsClient<
   TEvents extends AnalyticsEventMap = DefaultEventMap,
 > implements Analytics<TEvents> {
   readonly name: string;
+  readonly log: ReturnType<DebugLogger['asPublicApi']>;
 
   private config: ResolvedAnalyticsConfig;
   private logger: Logger;
+  private readonly debugLogger: DebugLogger;
   private readonly resolveProvider?: AnalyticsOptions['resolveProvider'];
 
   private readonly providers = new Map<string, RegisteredProvider>();
+  private readonly unresolvedProviders: Array<{ key: string; reason: string }> = [];
   private readonly pluginManager: PluginManager;
   private consentManager: ConsentManager;
   private queue?: DispatchQueue;
@@ -116,7 +126,12 @@ export class AnalyticsClient<
     // A minimal bootstrap setup so `use()`, `setConsent()` and `track()` are
     // safe to call before `init()`.
     this.config = resolveConfig({});
-    this.logger = createLogger({ level: this.config.logLevel, scope: this.name });
+    this.debugLogger = new DebugLogger({
+      scope: this.name,
+      options: this.config.logger,
+    });
+    this.logger = this.debugLogger;
+    this.log = this.debugLogger.asPublicApi();
     this.pluginManager = new PluginManager(this.logger, (info) => this.handleErrorInfo(info));
     this.consentManager = new ConsentManager(this.config.consent, this.logger);
     this.storage = createStorage({
@@ -161,10 +176,18 @@ export class AnalyticsClient<
   private async performInit(userConfig: AnalyticsConfig): Promise<void> {
     this.config = mergeConfig(this.config, userConfig);
 
-    this.logger = createLogger({
-      level: this.config.logLevel,
-      scope: this.name,
-      sink: userConfig.logger,
+    const { options: loggerOptions, sink } = resolveLoggerOptions(
+      this.config.debug,
+      userConfig.logLevel ?? this.config.logLevel,
+      userConfig.logger
+    );
+    this.config = { ...this.config, logLevel: loggerOptions.level, logger: loggerOptions };
+    this.debugLogger.configure(loggerOptions, sink);
+
+    this.debugLogger.action('info', 'init', 'Initializing analytics', {
+      environment: this.config.environment,
+      debug: this.config.debug,
+      providers: Object.keys(this.config.providers),
     });
 
     this.storage = createStorage({
@@ -217,11 +240,17 @@ export class AnalyticsClient<
       await this.initializeProviders();
       this.startAutomaticTracking();
     } else {
-      this.logger.debug('Server environment detected; providers are not loaded');
+      this.debugLogger.action(
+        'debug',
+        'init',
+        'Server environment detected; providers are not loaded'
+      );
     }
 
     this.initialized = true;
-    this.logger.info(
+    this.debugLogger.action(
+      'info',
+      'init',
       `Initialized with ${this.providers.size} provider(s): ${[...this.providers.keys()].join(', ') || 'none'}`
     );
 
@@ -234,6 +263,9 @@ export class AnalyticsClient<
     if (entries.length === 0) return;
 
     if (!this.resolveProvider) {
+      const reason =
+        'No provider resolver on this instance; import createAnalytics from the package root';
+      for (const [key] of entries) this.unresolvedProviders.push({ key, reason });
       this.logger.warn(
         `providers config was supplied (${entries.map(([key]) => key).join(', ')}) but this instance has no provider resolver. ` +
           'Import createAnalytics from the package root, or register provider instances with customProviders/addProvider.'
@@ -244,17 +276,29 @@ export class AnalyticsClient<
     await Promise.all(
       entries.map(async ([key, providerConfig]) => {
         if (providerConfig.enabled === false) {
-          this.logger.debug(`Provider "${key}" is disabled by configuration`);
+          this.debugLogger.action(
+            'debug',
+            'init',
+            `Provider "${key}" is disabled by configuration`
+          );
           return;
         }
         try {
           const provider = await this.resolveProvider?.(key, providerConfig);
           if (!provider) {
+            this.unresolvedProviders.push({
+              key,
+              reason: 'Unknown provider; no resolver entry matched',
+            });
             this.logger.warn(`Unknown provider "${key}"; no resolver entry matched`);
             return;
           }
           this.registerProvider(provider, providerConfig);
         } catch (error) {
+          this.unresolvedProviders.push({
+            key,
+            reason: error instanceof Error ? error.message : 'Failed to load provider',
+          });
           this.logger.error(`Failed to load provider "${key}"`, error);
           this.handleErrorInfo({ error, source: key, operation: 'resolve' });
         }
@@ -307,10 +351,17 @@ export class AnalyticsClient<
           anonymousId: this.anonymousId ?? undefined,
         });
         entry.initialized = true;
-        this.logger.debug(`Provider "${entry.provider.name}" initialized`);
+        entry.lastError = undefined;
+        this.debugLogger.action('debug', 'init', `Provider "${entry.provider.name}" initialized`);
       } catch (error) {
         entry.failed = true;
-        this.logger.error(`Provider "${entry.provider.name}" failed to initialize`, error);
+        entry.lastError = error instanceof Error ? error.message : String(error);
+        this.debugLogger.action(
+          'error',
+          'init',
+          `Provider "${entry.provider.name}" failed to initialize`,
+          error
+        );
         this.handleErrorInfo({
           error,
           source: entry.provider.name,
@@ -417,6 +468,7 @@ export class AnalyticsClient<
     }
     for (const warning of validation.warnings) this.logger.warn(warning);
 
+    this.debugLogger.action('debug', 'track', `track: ${eventName}`, properties);
     this.submit('track', eventName, properties, options);
   }
 
@@ -435,6 +487,7 @@ export class AnalyticsClient<
       ...properties,
     };
     const name = pageName ?? (typeof resolved.path === 'string' ? resolved.path : undefined);
+    this.debugLogger.action('debug', 'page', `page: ${name ?? '(current)'}`, resolved);
     this.submit('page', name, resolved, options);
   }
 
@@ -447,6 +500,7 @@ export class AnalyticsClient<
 
     this.userId = userId;
     this.traits = { ...this.traits, ...(traits ?? {}) };
+    this.debugLogger.action('debug', 'identify', `identify: ${userId}`, traits);
     this.submit('identify', userId, traits, options);
   }
 
@@ -458,6 +512,7 @@ export class AnalyticsClient<
     }
 
     this.groupId = groupId;
+    this.debugLogger.action('debug', 'identify', `group: ${groupId}`, traits);
     this.submit('group', groupId, traits, options);
   }
 
@@ -475,6 +530,7 @@ export class AnalyticsClient<
     }
 
     this.submit('reset', undefined, undefined, { immediate: true });
+    this.debugLogger.action('debug', 'reset', 'reset');
   }
 
   trackError(error: unknown, context?: ErrorContext): void {
@@ -631,35 +687,82 @@ export class AnalyticsClient<
     await this.pluginManager.notify(transformed);
 
     // Providers are browser-only; on the server the call ends with the plugins.
-    if (!isBrowser()) return;
-
-    const targets = this.eligibleProviders(call.options, call.type);
-    if (targets.length === 0) {
-      this.logger.debug(`No eligible provider for ${call.type} "${call.name ?? ''}"`);
+    if (!isBrowser()) {
+      this.debugLogger.action(
+        'debug',
+        'delivery',
+        `${call.type}${call.name ? ` "${call.name}"` : ''} skipped: ssr`
+      );
       return;
     }
 
-    if (this.config.debug) {
-      this.logger.debug(
-        `${call.type}${call.name ? ` "${call.name}"` : ''} -> ${targets
-          .map((entry) => entry.provider.name)
-          .join(', ')}`,
-        transformed.properties ? redactForLogging(transformed.properties) : undefined
-      );
-    }
-
     await Promise.all(
-      targets.map((entry) => this.deliverToProvider(entry, transformed, call.context))
+      [...this.providers.values()].map((entry) =>
+        this.deliverWithStatus(entry, transformed, call.context, call.options, call.type)
+      )
     );
   }
 
+  private async deliverWithStatus(
+    entry: RegisteredProvider,
+    payload: PluginPayload,
+    context: DispatchContext,
+    options: DispatchOptions | undefined,
+    type: OperationType
+  ): Promise<void> {
+    const skip = this.skipReason(entry, options, type);
+    if (skip) {
+      const result: IntegrationDeliveryResult = {
+        status: skip === 'unavailable' ? 'unavailable' : 'skipped',
+        operation: type,
+        reason: skip,
+        at: Date.now(),
+        ...(entry.lastError ? { error: entry.lastError } : {}),
+      };
+      entry.lastDelivery = result;
+      this.debugLogger.action(
+        skip === 'unavailable' ? 'warn' : 'debug',
+        'delivery',
+        `${type}${payload.name ? ` "${payload.name}"` : ''} ${result.status} for ${entry.provider.name}: ${skip}`
+      );
+      return;
+    }
+
+    const outcome = await this.deliverToProvider(entry, payload, context);
+    entry.lastDelivery = outcome;
+    const level = outcome.status === 'failed' ? 'error' : 'debug';
+    this.debugLogger.action(
+      level,
+      'delivery',
+      `${type}${payload.name ? ` "${payload.name}"` : ''} ${outcome.status} for ${entry.provider.name}` +
+        (outcome.error ? `: ${outcome.error}` : '')
+    );
+  }
+
+  private skipReason(
+    entry: RegisteredProvider,
+    options: DispatchOptions | undefined,
+    type: OperationType
+  ): IntegrationSkipReason | undefined {
+    if (!entry.enabled) return 'disabled';
+    if (entry.failed) return 'unavailable';
+    if (!this.providersAllowedInEnvironment()) return 'environment';
+    if (!this.consentManager.isAllowed(this.requiredConsentFor(entry))) return 'consent';
+    if (!entry.initialized) return 'not_initialized';
+    if (options?.only && !options.only.includes(entry.provider.name)) return 'filtered';
+    if (options?.except?.includes(entry.provider.name)) return 'filtered';
+    if (type === 'group' && !entry.provider.group) return 'unsupported';
+    if (type === 'reset' && !entry.provider.reset) return 'unsupported';
+    return undefined;
+  }
   private deliverToProvider(
     entry: RegisteredProvider,
     payload: PluginPayload,
     context: DispatchContext
-  ): Promise<void> {
+  ): Promise<IntegrationDeliveryResult> {
     const { provider } = entry;
     const { name, properties } = payload;
+    const at = Date.now();
 
     switch (payload.type) {
       case 'track':
@@ -673,15 +776,34 @@ export class AnalyticsClient<
           provider.identify(name ?? '', properties, context)
         );
       case 'group':
-        if (!provider.group) return Promise.resolve();
+        if (!provider.group) {
+          return Promise.resolve({
+            status: 'skipped',
+            operation: 'group',
+            reason: 'unsupported',
+            at,
+          });
+        }
         return this.invokeProvider(entry, 'group', () =>
           provider.group?.(name ?? '', properties, context)
         );
       case 'reset':
-        if (!provider.reset) return Promise.resolve();
+        if (!provider.reset) {
+          return Promise.resolve({
+            status: 'skipped',
+            operation: 'reset',
+            reason: 'unsupported',
+            at,
+          });
+        }
         return this.invokeProvider(entry, 'reset', () => provider.reset?.());
       default:
-        return Promise.resolve();
+        return Promise.resolve({
+          status: 'skipped',
+          operation: payload.type,
+          reason: 'unsupported',
+          at,
+        });
     }
   }
 
@@ -695,7 +817,8 @@ export class AnalyticsClient<
     entry: RegisteredProvider,
     operation: string,
     call: () => void | Promise<void>
-  ): Promise<void> {
+  ): Promise<IntegrationDeliveryResult> {
+    const at = Date.now();
     try {
       if (this.config.retry.enabled && operation !== 'destroy') {
         await withRetry(call, {
@@ -713,31 +836,23 @@ export class AnalyticsClient<
       } else {
         await call();
       }
+      return { status: 'success', operation, at };
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : `Provider "${entry.provider.name}" failed during ${operation}`;
       const providerError = new ProviderError(
         `Provider "${entry.provider.name}" failed during ${operation}`,
         entry.provider.name,
         operation,
         error
       );
+      entry.lastError = message;
       this.logger.error(providerError.message, error);
       this.handleErrorInfo({ error, source: entry.provider.name, operation });
+      return { status: 'failed', operation, at, error: message };
     }
-  }
-
-  private eligibleProviders(
-    options: DispatchOptions | undefined,
-    type: OperationType
-  ): RegisteredProvider[] {
-    return [...this.providers.values()].filter((entry) => {
-      if (!entry.enabled || !entry.initialized) return false;
-      if (!this.consentManager.isAllowed(this.requiredConsentFor(entry))) return false;
-      if (options?.only && !options.only.includes(entry.provider.name)) return false;
-      if (options?.except?.includes(entry.provider.name)) return false;
-      if (type === 'group' && !entry.provider.group) return false;
-      if (type === 'reset' && !entry.provider.reset) return false;
-      return true;
-    });
   }
 
   private requiredConsentFor(entry: RegisteredProvider): readonly ConsentCategory[] {
@@ -751,6 +866,7 @@ export class AnalyticsClient<
   /* ---------------------------------------------------------------------- */
 
   setConsent(consent: ConsentState): void {
+    this.debugLogger.action('debug', 'consent', 'setConsent', consent);
     this.consentManager.set(consent);
   }
 
@@ -759,6 +875,7 @@ export class AnalyticsClient<
   }
 
   clearConsent(): void {
+    this.debugLogger.action('debug', 'consent', 'clearConsent');
     this.consentManager.clear();
   }
 
@@ -767,7 +884,7 @@ export class AnalyticsClient<
   }
 
   private async handleConsentChange(snapshot: ConsentSnapshot): Promise<void> {
-    this.logger.debug('Applying consent change', snapshot.categories);
+    this.debugLogger.action('debug', 'consent', 'Applying consent change', snapshot.categories);
 
     await Promise.all(
       [...this.providers.values()].map(async (entry) => {
@@ -898,6 +1015,52 @@ export class AnalyticsClient<
     }));
   }
 
+  getIntegrationStatus(): readonly IntegrationStatus[] {
+    return [...this.providers.values()].map((entry) => this.toIntegrationStatus(entry));
+  }
+
+  getDebugReport(): DebugReport {
+    return {
+      generatedAt: Date.now(),
+      packageName: PACKAGE_NAME,
+      instanceName: this.name,
+      environment: this.config.environment,
+      debug: this.config.debug,
+      logLevel: this.config.logLevel,
+      logger: this.config.logger,
+      initialized: this.initialized,
+      enabled: this.config.enabled,
+      optedOut: this.isOptedOut(),
+      ssr: isServer(),
+      identity: {
+        userId: this.userId,
+        anonymousId: this.anonymousId,
+        groupId: this.groupId,
+      },
+      consent: this.consentManager.snapshot(),
+      integrations: this.getIntegrationStatus(),
+      unresolvedProviders: this.unresolvedProviders.slice(),
+      queueSize: this.queue?.size() ?? this.preInitCalls.length + this.consentPendingCalls.length,
+      recentLogs: this.debugLogger.getEntries(),
+    };
+  }
+
+  private toIntegrationStatus(entry: RegisteredProvider): IntegrationStatus {
+    const consentGranted = this.consentManager.isAllowed(this.requiredConsentFor(entry));
+    const skippedReason = this.skipReason(entry, undefined, 'track');
+    return {
+      name: entry.provider.name,
+      enabled: entry.enabled,
+      initialized: entry.initialized,
+      available: entry.enabled && entry.initialized && !entry.failed && consentGranted,
+      consentGranted,
+      requiredConsent: this.requiredConsentFor(entry),
+      ...(skippedReason ? { skippedReason } : {}),
+      ...(entry.lastError ? { lastError: entry.lastError } : {}),
+      ...(entry.lastDelivery ? { lastDelivery: entry.lastDelivery } : {}),
+    };
+  }
+
   setProviderEnabled(name: string, enabled: boolean): void {
     const entry = this.providers.get(name);
     if (!entry) {
@@ -948,8 +1111,16 @@ export class AnalyticsClient<
   }
 
   setDebug(debug: boolean): void {
-    this.config = { ...this.config, debug, logLevel: debug ? 'debug' : 'warn' };
-    this.logger = createLogger({ level: this.config.logLevel, scope: this.name });
+    const logger = {
+      ...this.config.logger,
+      level: debug
+        ? ('debug' as const)
+        : this.config.logger.level === 'debug'
+          ? 'warn'
+          : this.config.logger.level,
+    };
+    this.config = { ...this.config, debug, logLevel: logger.level, logger };
+    this.debugLogger.configure(logger);
   }
 
   private handleErrorInfo(info: AnalyticsErrorInfo): void {

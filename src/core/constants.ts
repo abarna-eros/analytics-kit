@@ -59,7 +59,28 @@ export const SENSITIVE_KEY_PATTERNS = [
   'session_id',
 ] as const;
 
+/**
+ * Extra key fragments redacted in developer logs only.
+ *
+ * These stay out of {@link SENSITIVE_KEY_PATTERNS} so legitimate identify
+ * traits such as `email` still reach analytics destinations; they must never
+ * appear in console or debug-report output.
+ */
+export const LOG_PII_KEY_PATTERNS = [
+  'email',
+  'e_mail',
+  'mail',
+  'phone',
+  'telephone',
+  'mobile',
+  'phonenumber',
+  'phone_number',
+] as const;
+
 export const REDACTED_VALUE = '[REDACTED]';
+
+/** Ring-buffer size for {@link import('./types').DebugReport.recentLogs}. */
+export const DEFAULT_DEBUG_LOG_LIMIT = 50;
 
 /** Ceiling on how much data a single property object may carry. */
 export const DEFAULT_MAX_PROPERTY_DEPTH = 5;

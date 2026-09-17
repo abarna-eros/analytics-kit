@@ -19,6 +19,24 @@ exported from a documented entry point is internal and may change in any release
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-17
+
+### Added
+
+- **Developer logging API** — `analytics.log.debug/info/warn/error`, `analytics.log.event`,
+  `analytics.log.view` and `analytics.log.identify`. These write through the configured
+  logger and never send data to providers.
+- **`LoggerOptions`** — `enabled`, `level`, `prefix`, `timestamps`, `showPayloads`,
+  `redactKeys`, `redact`, and a nested custom `logger` sink. `AnalyticsConfig.logger`
+  still accepts a bare `Logger` instance.
+- **`getIntegrationStatus()`** — per-integration availability, skip reasons
+  (`consent`, `disabled`, `unavailable`, …) and last delivery result
+  (`success` / `skipped` / `unavailable` / `failed`).
+- **`getDebugReport()`** — redacted, circular-safe snapshot of logger config, identity,
+  consent, integrations and recent log lines. Safe on the server.
+- Automatic action logs for init, track, page, identify, group, reset, consent and
+  per-provider delivery. Logging failures never abort tracking.
+
 ## [0.1.0] - 2026-09-16
 
 Initial release.
@@ -61,5 +79,6 @@ Initial release.
   subpath exports, `sideEffects: false`, lazily loaded provider chunks and zero runtime
   dependencies.
 
-[unreleased]: https://github.com/your-org/react-analytics/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/your-org/react-analytics/releases/tag/v0.1.0
+[unreleased]: https://github.com/abarna-eros/analytics-kit/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/abarna-eros/analytics-kit/releases/tag/v0.2.0
+[0.1.0]: https://github.com/abarna-eros/analytics-kit/releases/tag/v0.1.0
