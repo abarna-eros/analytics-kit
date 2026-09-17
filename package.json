@@ -1,6 +1,6 @@
 {
   "name": "analytics-bridge",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Provider-independent analytics for React and Next.js. One typed API for Google Analytics 4, Twilio Segment, Microsoft Clarity and custom providers, with consent management, batching and plugins.",
   "keywords": [
     "analytics",
